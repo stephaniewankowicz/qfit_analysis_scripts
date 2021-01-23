@@ -1,8 +1,3 @@
-#Edited by Stephanie Wankowicz
-#began: 2019-05-01
-'''
-Excited States software: qFit 3.0
-'''
 import os.path
 import os
 import sys
@@ -14,8 +9,6 @@ from argparse import ArgumentParser
 from . import Structure
 from .structure.base_structure import _BaseStructure
 
-
-os.environ["OMP_NUM_THREADS"] = "1"
 
 def parse_args():
     p = ArgumentParser(description=__doc__)
@@ -36,13 +29,13 @@ def get_occ(structure, ligand, pdb):
         print(occ)
         Occup.loc[1,'PDB'] = pdb
         Occup.loc[1,'Ligand_Name'] = ligand
-        Occup.loc[1,'Max_Occ'] = np.amax(occ)
+        Occup.loc[1,'Max_Occ'] = np.amin(occ)
         Occup.loc[1, 'Average_Occ'] = np.average(occ)
         Occup.to_csv(self.pdb + 'ligand_occupancy.csv', index=False)
 
 def main():
     args = parse_args()
     # Load structure and prepare it
-    structure = Structure.fromfile(args.structure).reorder() #put H20 on the bottom
+    structure = Structure.fromfile(args.structure).reorder()
     structure = structure.extract('e', 'H', '!=')
     get_occ(structure, args.ligand, ars.pdb)
