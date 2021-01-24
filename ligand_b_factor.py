@@ -1,11 +1,3 @@
-Edited by Stephanie Wankowicz
-#began: 2019-05-01
-'''
-Excited States software: qFit 3.0
-Contributors: Saulo H. P. de Oliveira, Gydo van Zundert, Henry van den Bedem, Stephanie Wankowicz
-Contact: vdbedem@stanford.edu
-'''
-import os.path
 import os
 import sys
 import time
@@ -13,11 +5,8 @@ import copy
 import numpy as np
 import pandas as pd
 from argparse import ArgumentParser
-from . import Structure
-from .structure.base_structure import _BaseStructure
+from qfit.structure import Structure
 
-
-os.environ["OMP_NUM_THREADS"] = "1"
 
 def parse_args():
     p = ArgumentParser(description=__doc__)
@@ -32,16 +21,13 @@ def parse_args():
     return args
 
 def get_bfactors(ligand, pdb_name, ligand_name):
-        n = 1
-        B_factor = pd.DataFrame()
-        #print(ligand)
         res_b = []
         altloc = []
         for atom in ligand.name:
-            #print(atom)
-            res_b.append(np.average(ligand.extract('name', atom, '==').b * ligand.extract('name', atom, '==').q))
+            print(atom)
+            res_b.append(ligand.extract('name', atom, '==').b)
+            res_q.append(ligand.extract('name', atom, '==').q)
         for chain in np.unique(ligand.chain):
-          #print(chain)
           if len(np.unique(ligand.extract('chain', chain, '==').altloc)) > 1:
              altloc.append('yes')
           else:
@@ -57,19 +43,17 @@ def get_bfactors(ligand, pdb_name, ligand_name):
         B_factor.loc[n, 'Max_Bfactor'] = np.amax(res_b)
         B_factor.loc[n, 'Average_Bfactor'] = np.average(res_b)
         n += 1
+        B_factor = pd.DataFrame()
         B_factor.to_csv(pdb_name + '_ligand_B_factors.csv', index=False)
 
 def main():
     args = parse_args()
     # Load structure and prepare it
-    structure = Structure.fromfile(args.structure).reorder() #put H20 on the bottom
+    structure = Structure.fromfile(args.structure).reorder()
     structure = structure.extract('e', 'H', '!=')
-    structure = structure.extract('record', 'HETATM')
-    #print(args.ligand)
-    structure2 = structure.extract('resn', args.ligand, '==')
-    #print(structure2)
+    structure = structure.extract('resn', args.ligand, '==')
     if not args.pdb == None:
        pdb_name = args.pdb
     else:
        pdb_name = ''
-    get_bfactors(structure2, pdb_name, args.ligand)
+    get_bfactors(structure, pdb_name, args.ligand)
